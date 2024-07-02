@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+
+<!--
+Made by Dominik Hauner in 2022 for the mail distribution of the Fachschaft physics/astronomy of the Universitiy Bonn.
+Handle with care!
+
+changelog:
+pre 1.3: "what is a changelog?"
+1.3: save/load functions
+
+Known Bugs:
+HTML-Converter Buttons dont work properly with the enable/disable all
+
+-->
+
+<script>
+    // 'borrowed' from the internet to ask for confirmation when trying to close the tab
+    window.onbeforeunload = function (e) {
+        e = e || window.event;
+        // For IE and Firefox prior to version 4
+        if (e) {
+            e.returnValue = 'Sure?';
+        }
+        // For Safari
+        return 'Sure?';
+    };
+</script>
+    
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Mail creator</title>
+</head>
+
+<body>
+
+    <div id="script_fail">
+        <h1>IF YOU CAN SEE THIS NOTHING HERE WILL WORK (probably)</h1>
+    </div>
+
+    <div id="intro">
+        <p>Only for internal use,<br>NOTHING HERE WILL BE SAVED!</p>
+        <button id="HELP">HELP!</button><!--- inner html must be "HELP!"!-->
+        <button id="show_save_load_btn">show load/save topics</button><!--- inner html must be "show load/save topics"!-->
+    </div><br>
+
+    <div id="save_load_div">
+        <hr>
+        <textarea id="save_load_textarea" placeholder="paste save text here to load it" style='width:1000px; min-height:10em'></textarea><br>
+        <button id="load_btn">load from text</button>
+        <button id="save_btn">generate save text</button>
+        <hr>
+
+    </div>
+
+    <div id="helpspace">
+        <div id="helptext">
+
+            Mit diesem Programm kann eine schön formatierte Mail <i>speziell</i> für den Mail-Verteiler der Fachschaft Physik/Astro an der Uni bonn erstellt werden.<br>
+            <br>
+            Der Gruß kann erst nach klicken des Knopfes <b>customise</b> verändert werden.<br>
+            Mit <b>default</b> kann wieder der perfekte Standardgruß gewählt werden. Änderungen bleiben sogar gespeichert<br>
+            Die Abschiedsgrüße darunter musst du dir selber ausdenken.<br>
+            <br>
+            Themen können mit <b>add topic</b> hinzugefügt werden, und mit dem anschließend erscheinenden Knopf <b>remove</b> wieder gelöscht werden. Inhalte gehen dann verloren!<br>
+            In die Textfelder können nun Titel und Text der Themen eingetragen werden. Falls es keinen Text für die Sprache gibt, können die Felder leer gelassen werden.<br>
+            <br>
+            <u>Coole Funktionen:</u><br>
+            <ul>
+            <li> Themen werden automatisch nummeriert, die Nummer kann im Text mit " \i" (MIT Leerzeichen) referenziert werden.<br>
+            Das ist for allem für Anhänge nutzlich, daher erscheint auch eine kurze Übersicht, bei welchen Themen man die Nummer genutz hat.</li><br>
+            <li> Wörter die mit "ww" oder "ht" anfangen werden automatisch zu Hyperlinks gemacht. Normale Satzzeichen [,.!?)] am Ende des Links sollten kein Problem sein.</li><br>
+            <li> Hyperlinks können manuell mit "\l{LINK}\l" erstellt werden. Ja, das ist ein kleines "L", keine Eins.<br>
+            (Das ist vielleicht obsolet, aber hey, ich habe das zuerst gemacht, da mache ich es doch nicht wieder weg.)</li><br>
+            <li> Konvertiere verrückt formatierten Text mit HTML-code zu einfachem Text mit Links! Alle HTML-Eigenschaften können einzeln wieder aktiviert werden.<br>
+            Dazu einfach den Text in den <b>html-converter</b> einfügen, enstsprechende Knöpfe daruter drücken, und Eigenschaften nach Lust und Laune mit den darüber erscheinenden Knöpfen verwalten!</li><br>
+            <li> Themen können gespeichert und geladen werden! Dazu kann ein Text erstellt werden, der alle Themeninhalte beinhaltet und extern gespeichert werden.<br>
+            Solch ein gespeicherter Text kann dan geladen werden und die Themen werden an die bestehenden Themen angehängt. </li><br>
+            </ul>
+            Die Mail kann nun mit einem Klick auf <b>generate</b> erstellt werden. Es steht der Quellcode und Klartext zur Verfügung.<br>
+            Der Quellcode kann super in KIX eingefügt werden, wenn man einfach die Quellcode-Ansicht nutzt.<br>
+            <br>
+            Die Mail kann dann an die unten genannte Adresse gesendet werden. Abschiedsgrüße und Namen nicht vergessen!<br>
+            <br><br>
+            Weitere Infos gibt es in den Dateien KIX.txt und rules.txt, wie man KIX so nutz und was weiter geleitet werden soll. Oder einfach ins HowTo gucken!
+
+        </div>
+    </div>
+    <br>
+
+    <button id="hide_converter_btn">show html-converter</button><!--- inner html must be "show html-converter"!-->
+
+    <div id="html_converter_div">
+        <hr>
+        <div id="ctrl_buttons_div_div"><div id="ctrl_buttons"></div></div>
+
+        <form>
+            <div id="htmltext_in" contenteditable style='border:solid 1px red;min-height:4em'>Paste Text with embedded html-code here</div>
+        </form>
+
+        <button id="htmltext_btn_clear">clear input</button><br>
+        <button id="htmltext_btn_off">disable all html (TODO: toggle btn)</button><br>
+        <button id="htmltext_btn_on">enable all html (TODO: toggle btn)</button><br>
+        <button id="htmltext_btn_link"><b>refresh input</b> and only enable links</button><br>
+
+        <textarea id="htmltext_out" placeholder="plain text output for copying" style='width:1000px; min-height:10em'></textarea><br>
+        <button id="htmltext_btn_copy"><b>copy <i>current</i> output</b></button><br>
+        <div id="htmlout_div">-HTML Text preview-</div>
+        <hr>
+    </div>
+    <br><br>
+
+
+
+    <textarea id="greetings" type="text" readonly value=""></textarea>
+    <button id="custom">customise</button><br><!--- inner html must be "customise"!-->
+    <textarea id="farewell" type="text"></textarea><br><br>
+
+    <button id="new_content">add topic</button>
+
+    <div id="topics">
+
+        <!--
+        <div>
+        <textarea placeholder="Titel DE"></textarea>
+        <textarea rows="8" cols="40" placeholder="Content DE"></textarea>
+        <textarea placeholder="Title EN"></textarea>
+        <textarea rows="8" cols="40" placeholder="Content EN"></textarea>
+        <button>remove</button>
+        </div>
+        -->
+
+    </div><br>
+    <hr>
+
+    <div id="appendix_reminder_div"></div>
+
+    <div id="output">
+        <button id="generate">generate</button><br>
+        <!--- the copy buttons work also when the inner html of the address or the subject have been changed -->
+        <b>mail to:</b> <p id="mailto" style="display:inline">physikstudent@listen.uni-bonn.de</p> <button id="cp_mailto">copy</button><br>
+        <b>subject:</b> <p id="subject" style="display:inline">Mail-Verteiler der Fachschaft / Mail distribution of the Fachschaft</p> <button id="cp_subject">copy</button><br>
+        <textarea id="output_code" type="text" placeholder="Output" readonly value=""></textarea><button id="cp_output_code">copy</button><br>
+        <p id="output_text"></p>
+    </div>
+
+    <!-- /////////////////////////////////////////////////////////////////////////////// SCRIPTS /////////////////////////////////////////////////////////////////////////////// -->
+    <!-- Some things I consider to be customisable in this code are marked with (cc).
+         These things should stay the same, but can be changed if you want to change the look of the mail.
+         This additionally includes some custom code that might need to be adjusted in the future for weird edge cases. -->
+    <script>
+    /////////////////////////////////////////////////////////////////////////////// script for all the copy buttons
+    const mailto_btn=document.getElementById("cp_mailto")
+    const subject_btn=document.getElementById("cp_subject")
+    const output_btn=document.getElementById("cp_output_code")
+    const htmlconverter_btn=document.getElementById("htmltext_btn_copy")
+
+    mailto_btn.onclick = function () {
+        const mailto_text=document.getElementById("mailto").innerHTML
+        navigator.clipboard.writeText(mailto_text)
+    }
+    subject_btn.onclick = function () {
+        const subject_text=document.getElementById("subject").innerHTML
+        navigator.clipboard.writeText(subject_text)
+    }
+    output_btn.onclick = function () {
+        const output_text=document.getElementById("output_code").value
+        navigator.clipboard.writeText(output_text)
+    }
+    htmlconverter_btn.onclick = function () {
+        const htmlconverter_text=document.getElementById("htmltext_out").value
+        navigator.clipboard.writeText(htmlconverter_text)
+    }
+    </script>
+
+
+    <script> // html converter
+        /////////////////////////////////////////////////////////////////////////////// SCRIPT ONLY FOR HTML CONVERTER
+        
+        // how it roughly works:
+        // split input into list with text and code separated
+        // assign code_ids to the code blocks (number i start code, number -i corresponding end code, 0 is text)
+        // display is a list saying weather or not to output the textblock
+
+        // control buttons for managing html code will also be created
+	
+        const show_converter_btn = document.getElementById("hide_converter_btn");
+        const converter_div = document.getElementById("html_converter_div");
+        const text_in = document.getElementById("htmltext_in");
+        const text_out = document.getElementById("htmltext_out");
+        const div_out = document.getElementById("htmlout_div");
+
+        const converter_btn = document.getElementById("htmltext_btn_link");
+        const converter_btn_off = document.getElementById("htmltext_btn_off");
+        const converter_btn_on = document.getElementById("htmltext_btn_on");
+        const converter_btn_clear = document.getElementById("htmltext_btn_clear");
+
+
+        // refresh output function
+        var html_log=true; // default setting: log html-output
+        function refresh(text, display, code_id) {
+            // input: array (string), array (bool), array (int)
+            var converter_out = ""
+            for (i = 0; i < display.length; i++) {
+                // check if code (and text) is to be displayed
+                if (display[i]) {
+                    if (code_id[i] != 0) {
+                        // code needs the html-brackets
+                        converter_out += "<" + text[i] + ">";
+                    }
+                    else { converter_out += text[i] };
+                };
+            };
+            // output
+            converter_out = converter_out.replace(/(<br>)((\s*(&nbsp;)*(<br>)+)+)/g, "<br><br>") // cap out line breaks at two
+            text_out.value = converter_out.replace(/&nbsp;/g, " ").replace(/<br>/g, "\n"); // replace spaces and linebreaks from html to string
+            div_out.innerHTML = converter_out;
+            if (html_log){
+                console.log("display-array: ", display);
+                console.log("full_text-array: ", text);
+                console.log("codeID-array: ", code_id);
+                console.log("output: ", converter_out);
+            }
+        };
+        // refresh function end
+
+
+        // show and hide converter button
+        // initial hide html-converter
+        converter_div.style.display = 'none';
+        show_converter_btn.onclick = function () {
+            // show converter
+            if (show_converter_btn.innerHTML == "show html-converter") {
+                show_converter_btn.innerHTML = "hide html-converter";
+                converter_div.removeAttribute("style");
+            }
+            // hide converter
+            else {
+                show_converter_btn.innerHTML = "show html-converter";
+                converter_div.style.display = 'none';
+            };
+        };
+        // show and hide function end
+
+        var add_breaks=true; // variable, so it can be changed on the fly in the console (cc)
+        /////////////////////////////////////// refresh coverter input button
+        converter_btn.onclick = function () {
+            // the input will be broken into pieces with text or code, "<" and ">" are the split points
+
+            // ID of the html-code according to a bracket-style. Pos. value is start-code, same neg. value is the end-code, zero for Text
+            var code_id = [];
+			// keeping count of the current max code ID
+            var max_code_id = 0;
+            // first word of code for identification, f.ex. span or div
+            var code_identifier = [];
+            // boolean if the code is to be displayed. For <br> and text always true
+            var display = [];
+            // full text-pieces and code for printing the output
+            var output = [];
+            
+            // clear previous control-buttons
+            var ctrl_btn_div = document.getElementById("ctrl_buttons");
+            const ctrl_btn_div_div = document.getElementById("ctrl_buttons_div_div");
+            ctrl_btn_div.remove();
+            ctrl_btn_div = document.createElement("div");
+            ctrl_btn_div.id = "ctrl_buttons";
+            ctrl_btn_div_div.appendChild(ctrl_btn_div);
+
+            // load input
+            var html_string = text_in.innerHTML.replace(/\n/g, " ") // for some reason line breaks get randomly added
+            // some manual adjustmens so the outputs looks proper (cc)
+			if (add_breaks){html_string = html_string.replace(/\/p>/g, "/p><br>").replace(/\/h>/g, "/h><br>").replace(/\/div>/g, "/div><br>").replace(/li>/g, "li><br>");}  // TODO: better linebreak for paragraph, div and list
+            html_string=html_string.replace(/br>\s+/g,"br>").replace(/\s+/g," ") // remove spaces after linebreak and reduce spaces
+
+			console.log("input:\n" + html_string);
+
+
+            /////////////////////////////////////// SEARCH FOR HTML-CODE
+            var search_start_pos = 0; // gets increased with every found code
+            // find html-code start = "<"
+            for (var code_start_pos = 0; code_start_pos < html_string.length; code_start_pos++) {
+                if (html_string[code_start_pos] == "<") {
+
+                    // find html-code end = ">"
+                    // loop-break when ">" is found
+                    var reached_code_end = false;
+                    for (var code_end_pos = code_start_pos; code_end_pos < html_string.length && !(reached_code_end); code_end_pos++) {
+                        if (html_string[code_end_pos] == ">") {
+
+                            /////////////////////////////////////// html-code located
+
+                            // save text before code and print next to control buttons, if not empty
+                            var text_between_codes = html_string.substring(search_start_pos, code_start_pos);
+								output.push(text_between_codes);
+								code_id.push(0);
+								code_identifier.push("");
+								display.push(true);
+								
+								const ctrl_par = document.createElement("paragraph");
+								ctrl_par.innerHTML = text_between_codes;
+								ctrl_btn_div.appendChild(ctrl_par);
+							
+
+                            // save code
+							var tmp_code_str=html_string.substring(code_start_pos + 1, code_end_pos);
+							
+							/////////////////////////////////////// automatic link cleanup
+                            // if start code: clean up link (only save the href="*")
+							var tmp_link=tmp_code_str.match(/href="[^"]*"/);
+							if (tmp_code_str[0]=="a" && tmp_code_str[1]==" " ){
+								tmp_code_str="a "+tmp_link+" target=\"_blank\"";}
+
+                            // default is to not display any code, so all code will have diplay as false, EXCEPT link end-code
+                            // link code-start will be handled later!
+							// enable display for link end-code (not </anything else> that just happens to start with a)
+							if (tmp_code_str[0]=="\/" && tmp_code_str[1]=="a" && (tmp_code_str[2]==" " || tmp_code_str.length==2)){
+							display.push(true);}
+                            // default is to not display code
+							else{display.push(false);}
+
+                            output.push(tmp_code_str);
+                            code_identifier.push(tmp_code_str.split(" ")[0]);
+
+                            // check for end-code
+                            if (code_identifier[code_identifier.length - 1].substring(0, 1) == "/") {
+
+                                /////////////////////////////////////// end-code located
+
+                                // search code_id backwards in output for start-code with matching id
+                                for (var search_index = output.length - 2; search_index >= 0; search_index--) {
+                                    if (output[search_index].split(" ")[0] == code_identifier[code_identifier.length - 1].substring(1,)) {
+                                        // found matching start_code at search_index
+                                        if (code_id.includes(-code_id[search_index])) {
+                                            // start_code already used
+                                        }
+                                        else {
+                                            // correct start code
+                                            code_id.push(-code_id[search_index]);
+                                            break
+                                        };
+                                    }
+                                    else if (search_index == 0) {
+                                        // found no matching start code :(
+                                        console.log("ERROR: Did not find matching start code for ", code_identifier[code_identifier.length - 1], "ID: ", code_id[code_id.length - 1]);
+                                    };
+                                };
+                                // end for find start code
+                            }
+                            /////////////////////////////////////// end if end-code located
+
+
+                            else {
+
+                                /////////////////////////////////////// start-code located
+								
+                                max_code_id += 1;
+                                code_id.push(max_code_id);
+
+                                /////////////////////////////////////// create control button
+                                const ctrl_btn = document.createElement("button");
+                                // save code_id and code_identifier in button innerHTML and full code in the btn_id
+                                ctrl_btn.innerHTML = "off: " + code_id[code_id.length - 1] + ": " + code_identifier[code_identifier.length - 1] + " ...";
+                                ctrl_btn.id = output[output.length - 1];
+                                // check for <br>, no button needed
+                                if (output[output.length - 1] == "br") { display[code_id.length - 1] = true; }
+                                else { ctrl_btn_div.appendChild(ctrl_btn); };
+								
+
+                                ctrl_btn.addEventListener('click', () => {
+                                    // the just defined control button was pressed
+                                    var btn_code_id = ctrl_btn.innerHTML.split(":")[1].substring(1,); // extract code id from the button
+                                    // find btn_code_id in code_id and toggle the code display
+                                    for (i = 0; i < code_id.length; i++) {
+                                        if (code_id[i] == btn_code_id || -code_id[i] == btn_code_id) {
+                                            if (display[i]) { display[i] = false }
+                                            else { display[i] = true };
+                                        };
+                                    };
+
+                                    // change button label
+                                    if (ctrl_btn.innerHTML.split(":")[0] == "off") {
+                                        ctrl_btn.innerHTML = "on: " + btn_code_id + ": " + ctrl_btn.id;
+                                    }
+                                    else {
+                                        ctrl_btn.innerHTML = "off: " + btn_code_id + ": " + ctrl_btn.id.split(" ")[0] + " ...";
+                                    };
+                                    // refresh output
+                                    refresh(output, display, code_id);
+                                });
+                                /////////////////////////////////////// ctrl_btn end
+								
+								
+								// toggle Links, so the button is also on (additial always one code coulde be toggled here, minde the default end code toggle above (cc))
+								// THIS WILL ONLY ENABLE DISPLAY FOR THE CODE START, THE CODE END HAS NOT BEEN FOUND YET!
+								if (code_identifier[code_identifier.length - 1]=="a"){
+                                    html_log=false; // avoid log spam
+									ctrl_btn.click();
+								    html_log=true;
+                                }
+                            };
+                            /////////////////////////////////////// end else-if start-code located
+
+                            reached_code_end = true;
+                        };
+                        // end if html-code (found "<...>"")
+                    }
+                    // end code-end search foor-loop (search for ">")
+
+                    // new code-start search point
+                    code_start_pos = code_end_pos - 1;
+                    search_start_pos = code_end_pos
+                };
+                // end if code-start (search for ">")
+            };
+            /////////////////////////////////////// end search for html code
+
+            // apend text that is not code at the end (or when there is not html-code)
+            if (html_string[-1] != ">") {
+                var text = html_string.match(/>?[^>]*$/)[0] // search for last ">"
+                if (output.length == 0) { console.log("No HTML-code found!"); }
+                else {text = text.slice(1)};
+                output.push(text);
+                code_id.push(0);
+                display.push(true);
+            }
+
+            // intitial print refresh
+            refresh(output, display, code_id);
+
+
+            /////////////////////////////////////// enable and diasable all -buttons
+            converter_btn_off.onclick = function () {
+                // disable every display, dont change br
+                for (var i = 0; i < display.length; ++i) { if (code_id[i] != 0 && code_identifier[i] != "br") {
+                    if (display[i]){
+                        display[i] = false;
+                        // also toggle buttons
+                        // TODO
+                    }
+                } }
+                refresh(output, display, code_id);
+            }
+            converter_btn_on.onclick = function () {
+                // enable every display, dont change br
+                for (var i = 0; i < display.length; ++i) { if (code_id[i] != 0 && code_identifier[i] != "br") {
+                    if (!display[i]){
+                        display[i] = true;
+                        // also toggle buttons
+                        // TODO
+                    }
+                } }
+                refresh(output, display, code_id);
+            }
+        }
+        /////////////////////////////////////// end refresh coverter input button press
+
+        /////////////////////////////////////// clear input button
+        converter_btn_clear.onclick = function () {
+            text_in.innerHTML="";
+            // clear previous control-buttons
+            var ctrl_btn_div = document.getElementById("ctrl_buttons");
+            const ctrl_btn_div_div = document.getElementById("ctrl_buttons_div_div");
+            ctrl_btn_div.remove();
+            ctrl_btn_div = document.createElement("div");
+            ctrl_btn_div.id = "ctrl_buttons";
+            ctrl_btn_div_div.appendChild(ctrl_btn_div);
+            // jump to top of html converter
+            document.getElementById("html_converter_div").scrollIntoView({behavior: 'smooth'});
+            // place curser in input form
+            text_in.focus();
+        }
+
+        /////////////////////////////////////////////////////////////////////////////// end html-converter script
+    </script>
+
+
+    <script> // most stuff
+        /////////////////////////////////////////////////////////////////////////////// script for MAIL GENERATION and rest of page (greetings, farewell, help button, save stuff)
+        // some default values (cc)
+        var topic_divider = "\n-----------------------------------------------------------------------------------------------------------------------\n";
+        var lang_divider = "\n///////////////////////////////////////////////////////////////////////////////////////////////////\n";
+        var lng_div = " / ";
+        var greeting = "Liebe Mitstudierende,\n\nder Mail-Verteiler der Fachschaft hat wieder viele interessante Informationen für euch.\nDer Inhalt der Mail ist im Folgenden in einer Übersicht zusammengefasst:" + lang_divider + "Dear fellow students,\n\nthe mail distribution list of the Fachschaft has again a lot of interesting information for you.\nThe content of the mail is summarized in an overview below:";
+        var farewell = "/If you can see this, I forgot to add the greetings/\n/and even my NAME/"; //additional line breaks will be added
+
+        // function to create a shade of gray
+        var add_gray=0;
+        function random_gray(){
+            // depricated name, is not random anymore
+            upper_bound=230;
+            lower_bound=150;
+
+            //color=Math.floor(Math.random()*(upper_bound-lower_bound)+lower_bound);
+            color=upper_bound-add_gray+Math.floor(Math.random()*14-7); // increase color with slight deviation
+            add_gray+=20;
+            if (upper_bound-add_gray<lower_bound){add_gray=0;};
+
+            color_hex=color.toString(16);
+            return "#"+color_hex+color_hex+color_hex;
+        }
+
+
+        /////////////////////////////////////// grettings and farewell
+        const btn_custom = document.getElementById("custom");
+        const greeting_box = document.getElementById("greetings");
+        greeting_box.value = greeting;
+        var greeting_custom = greeting;
+        
+        const farewell_box = document.getElementById("farewell");
+        farewell_box.value = farewell;
+
+        // customise greetings on click function
+        btn_custom.onclick = function () {
+            // enable editing, load custom edit
+            if (btn_custom.innerHTML == "customise") {
+                btn_custom.innerHTML = "default";
+                greeting_box.value = greeting_custom;
+                greeting_box.removeAttribute("readonly");
+            }
+            // disable editing, save custom edit, change to default
+            else {
+                greeting_custom = greeting_box.value;
+                btn_custom.innerHTML = "customise";
+                greeting_box.setAttribute("readonly", true);
+                greeting_box.value = greeting;
+            };
+        };
+        // end customise greetings function
+
+
+        /////////////////////////////////////// help buttton
+        const help_btn = document.getElementById("HELP");
+        const intro_div = document.getElementById("intro");
+        const help_div = document.getElementById("helpspace");
+        const help_DE = document.getElementById("helptext");
+        help_DE.style.display = 'none';
+        var help_par = help_DE;
+
+        // show and hide help text
+        help_btn.onclick = function () {
+            // show help text
+            if (help_btn.innerHTML == "HELP!") {
+                help_btn.innerHTML = "ok, wird schon";
+                help_par.removeAttribute("style");
+            }
+            // hide help text
+            else {
+                help_btn.innerHTML = "HELP!";
+                help_par.style.display = 'none';
+            };
+        };
+        // end help btn function
+
+
+        /////////////////////////////////////// add topic (content) button
+        const topic_list = document.getElementById("topics");
+        const new_content_btn = document.getElementById("new_content");
+
+        // lists for saving all the topic textareas
+        var title_de_arr = [];
+        var title_en_arr = [];
+        var content_de_arr = [];
+        var content_en_arr = [];
+
+
+        // add topic function, creates a new topic div with given text inside
+        function add_topic (DE_title="",DE_content="",EN_title="",EN_content="") {
+            // create new div for topic
+            const topic_el = document.createElement("div");
+            // add random gray color for better differentiation of topics
+            topic_el.style='background-color:'+random_gray()
+
+            // create title_de textarea
+            const title_de_el = document.createElement("textarea");
+            title_de_el.type = "text";
+            title_de_el.placeholder = "Titel DE";
+            title_de_el.innerHTML = DE_title;
+
+            // create content_de textarea
+            const content_de_el = document.createElement("textarea");
+            content_de_el.type = "text";
+            content_de_el.rows = content_de_el.rows * 4;
+            content_de_el.cols = content_de_el.cols * 2;
+            content_de_el.placeholder = "Content DE";
+            content_de_el.innerHTML = DE_content;
+
+            // create title_en textarea
+            const title_en_el = document.createElement("textarea");
+            title_en_el.type = "text";
+            title_en_el.placeholder = "Title EN";
+            title_en_el.innerHTML = EN_title;
+
+            // create content_en textarea
+            const content_en_el = document.createElement("textarea");
+            content_en_el.type = "text";
+            content_en_el.rows = content_en_el.rows * 4;
+            content_en_el.cols = content_en_el.cols * 2;
+            content_en_el.placeholder = "Content EN";
+            content_en_el.innerHTML = EN_content;
+
+            // create remove button
+            const remove_btn = document.createElement("button");
+            remove_btn.innerHTML = "remove";
+
+            // save textareas in arrays
+            title_de_arr.push(title_de_el);
+            title_en_arr.push(title_en_el);
+            content_de_arr.push(content_de_el);
+            content_en_arr.push(content_en_el);
+
+            // append everything to the div
+            topic_el.appendChild(title_de_el);
+            topic_el.appendChild(content_de_el);
+            topic_el.appendChild(title_en_el);
+            topic_el.appendChild(content_en_el);
+            topic_el.appendChild(remove_btn);
+
+            // append div on page
+            topic_list.appendChild(topic_el);
+
+            // add event listener to remove button (this is actually better than all the other used onclick functions!)
+            remove_btn.addEventListener('click', () => {
+                // remove the corresponding div (just same variabel name)
+                topic_list.removeChild(topic_el);
+                // find textareas in the arrays and delete them
+                title_de_arr = title_de_arr.filter((item) => item !== title_de_el);
+                title_en_arr = title_en_arr.filter((item) => item !== title_en_el);
+                content_de_arr = content_de_arr.filter((item) => item !== content_de_el);
+                content_en_arr = content_en_arr.filter((item) => item !== content_en_el);
+            });
+            // end event listener
+        };
+        // end function
+        
+        new_content_btn.onclick = function () {
+            // create new empty topic
+            add_topic();
+        }
+
+
+        /////////////////////////////////////// load/save stuff
+
+        const topic_delim = "<//>"
+        const content_delim = "</>"
+
+        const save_button = document.getElementById("save_btn");
+        const load_button = document.getElementById("load_btn");
+        const show_button = document.getElementById("show_save_load_btn")
+        const save_textarea = document.getElementById("save_load_textarea")
+        const save_div = document.getElementById("save_load_div")
+
+        // show/hide save div
+        save_div.style.display = 'none';
+        show_button.onclick = function () {
+            // show 
+            if (show_button.innerHTML == "show load/save topics") {
+                show_button.innerHTML = "hide load/save topics";
+                save_div.removeAttribute("style");
+            }
+            // hide 
+            else {
+                show_button.innerHTML = "show load/save topics";
+                save_div.style.display = 'none';
+            };
+        };
+        // show and hide function end
+        
+
+        // load function
+        load_button.onclick = function () {
+
+            const load_txt = save_textarea.value;
+            const topics = load_txt.split(topic_delim);
+
+            for (var i = 0; i < topics.length; i++) {
+                // split into the topics, add blank split points as fail save
+                const content = (topics[i]+content_delim+content_delim+content_delim).split(content_delim);
+                // add the topics
+                add_topic(content[0],content[1],content[2],content[3]);
+            };
+        };
+        // load function end
+
+
+        // save function
+        save_button.onclick = function () {
+
+            // save string with all the content
+            var save_txt = "";
+
+            for (var i = 0; i < title_de_arr.length; i++) {
+
+                // loop over all the content and add to save string, with delims
+                save_txt+=title_de_arr[i].value+content_delim+content_de_arr[i].value+content_delim+title_en_arr[i].value+content_delim+content_en_arr[i].value+topic_delim;
+
+            };
+
+            // remove the last content delim
+            save_txt=save_txt.substring(0,save_txt.length-4);
+
+            // output save string
+            save_textarea.value = save_txt;
+        };
+        // save function end
+
+
+
+        /////////////////////////////////////////////////////////////////////////////// generate button
+        // default when no content (cc)
+        no_german = "[exklusiv Englisch]";
+        no_english = "[German exclusive]";
+
+        const appendix_reminder = document.getElementById("appendix_reminder_div");
+        const generate_btn = document.getElementById("generate");
+        const out_textarea = document.getElementById("output_code");
+        out_textarea.value = "";
+        const out_par = document.getElementById("output_text");
+
+        // function for title creation, retuns the title in format, without any line breaks (cc)
+        function title(number,de,en){
+            // topic number starts at 0!
+            var str_out="" // just because I dont trust javascript
+            str_out+=(number + 1) + ". " + de + lng_div + en
+            return str_out
+        }
+
+        // generate button function
+        generate_btn.onclick = function () { // generate button
+            /////////////////////////////////////// begin toc (cc)
+            var out_txt = greeting_box.value + "\n\n<b>Inhalt"+lng_div+"Content:</b>\n"; 
+            for (var i = 0; i < title_de_arr.length; i++) {
+                // reset empty titles
+                if (title_de_arr[i].value == "") { title_de_arr[i].value = no_german };
+                if (title_en_arr[i].value == "") { title_en_arr[i].value = no_english };
+                // add titles to output and remove line breaks
+                title_de_arr[i].value = title_de_arr[i].value.replace(/\n/g, "");
+                title_en_arr[i].value = title_en_arr[i].value.replace(/\n/g, "");
+                out_txt += title(i,title_de_arr[i].value,title_en_arr[i].value) + "\n";
+            };
+            /////////////////////////////////////// end toc
+            out_txt += topic_divider;
+            /////////////////////////////////////// begin content
+            var number_used_arr = [];
+            // add every content to the output, check which languages is used
+            for (var i = 0; i < title_de_arr.length; i++) {
+                // the last line with all the regex is to replace the custom numbering and remove empty space at the end
+
+                if (content_en_arr[i].value == "") {
+                    // GERMAN ONLY
+                    out_txt += "<b>" + title(i,title_de_arr[i].value,title_en_arr[i].value) + "</b>\n\n";
+                    out_txt += content_de_arr[i].value.replace(/ \\i/g, " " + (i + 1)).replace(/\s*$/,"") + "\n";
+                }
+
+                else if (content_de_arr[i].value == "") {
+                    // ENGLISH ONLY
+                    out_txt += "<b>" + title(i,title_de_arr[i].value,title_en_arr[i].value) + "</b>\n\n";
+                    out_txt += content_en_arr[i].value.replace(/ \\i/g, " " + (i + 1)).replace(/\s*$/, "") + "\n";
+                }
+
+                else {
+                    // GERMAN AND ENGLISH
+                    out_txt += "<b>" + (i + 1) + ". " + title_de_arr[i].value + lng_div + "[English version below]</b>\n\n"; // (cc)
+                    out_txt += content_de_arr[i].value.replace(/ \\i/g, " " + (i + 1)).replace(/\s*$/, "") + "\n";
+                    out_txt += lang_divider;
+                    out_txt += "<b>" + (i + 1) + ". " + title_en_arr[i].value + "</b>\n\n";
+                    out_txt += content_en_arr[i].value.replace(/ \\i/g, " " + (i + 1)).replace(/\s*$/, "") + "\n";
+                };
+
+                // check if " \i" was used
+                number_used_arr.push(/ \\i/.test(content_de_arr[i].value) || / \\i/.test(content_en_arr[i].value));
+
+                out_txt += topic_divider;
+            };
+            out_txt += "\n"+farewell_box.value+"\n\n\n\n\n"; // add some space after the farewell (cc)
+            /////////////////////////////////////// end content (the whole output text is generated now)
+
+            /////////////////////////////////////// begin appendix reminder
+            // clear div
+            appendix_reminder_div.innerHTML = "";
+            // check if any number (" \i") was used
+            if (number_used_arr.some(element => element == true)) {
+                const appendix_reminder_par = document.createElement("par");
+                var appendix_reminder_str = "Number references used:<br><br>";
+                // check where number used
+                for (var i = 0; i < title_de_arr.length; i++) {
+                    // Print titles where number used
+                    if (number_used_arr[i]) {
+                        appendix_reminder_str += title(i,title_de_arr[i].value,title_en_arr[i].value) + "<br>";
+                    };
+                };
+                // append on page
+                appendix_reminder_par.innerHTML = appendix_reminder_str + "<br>";
+                appendix_reminder_div.appendChild(appendix_reminder_par);
+            };
+            /////////////////////////////////////// end appendix reminder
+
+            /////////////////////////////////////// begin links
+            // new output with links
+            var link_out_txt = "";
+
+            //normalise line breaks and spaces
+            out_txt = out_txt.replace(/<br>/g, "\n");
+            out_txt = out_txt.replace(/&nbsp;/g, " ");
+            // overwrite spaces after line break with nbsp (so indents are possible)
+            for (var i = 0; i < out_txt.length; i++) {
+                if (out_txt[i] == "\n") {
+                    for (var spaces = i+1; spaces < out_txt.length; spaces++) {
+                        if (out_txt[spaces] == " ") {
+                            out_txt = out_txt.substring(0, spaces) + "&nbsp;" + out_txt.substring(spaces + 1,);
+                            spaces += 5
+                        }
+                        else { break };
+                    };
+                };
+            };
+
+            // split for manual links
+            var out_txt_arr = out_txt.split("\\l");
+
+            // check if there is an even amount of splits
+            if (out_txt_arr.length % 2 == 1) {
+                for (var link_split_block_position = 0; link_split_block_position < out_txt_arr.length; link_split_block_position++) {
+
+                    current_text_block = out_txt_arr[link_split_block_position];
+
+                    if (link_split_block_position % 2 == 1) {
+                        ////////// only for manual links
+                        var link = "  <a href= \"" + current_text_block + "\" target=\"_blank\">" + current_text_block + "</a>  "; // create link
+                        link_out_txt += link.replace(/ +" +/g, "\"").replace(/> +/g, ">").replace(/ +</g, "<").replace("\"www", "\"https://www"); // normalise spaces and link type
+                    }
+
+                    else {
+                        // normal text block
+                        ////////// automatic links
+                        var link_end_search = 0; // end of previous link
+                        for (var link_search_position = 0; link_search_position < current_text_block.length - 2; link_search_position++) {
+
+                            current_test_character = current_text_block[link_search_position];
+
+                            // search for "links"
+                            // the programm looks for "ww" or "ht" after word delimiters (characters before link) like [" ","(","\n"]
+                            // the end of the link is another word delimeter (characters after link) like [" ","\n"], but excluding sentence endings (stop char) like [".","!",")"] that are not part of the link
+
+                            // ALLOWED CHARACTERS BEFORE LINK DEFINED HERE (cc)
+                            // ";" for &nbsp;
+                            before_link_char = [" ", "(", "\n", ";"];
+                            // allowed link start-chars: "ww", "ht"
+                            if ((before_link_char.includes(current_test_character))
+                                && (((current_text_block[link_search_position + 1] == "w") && (current_text_block[link_search_position + 2] == "w"))
+                                || ((current_text_block[link_search_position + 1] == "h") && (current_text_block[link_search_position + 2] == "t")))) {
+                                ////////// link found
+
+                                // start of link
+                                link_start=link_search_position + 1;
+                                // text before link
+                                var new_text = current_text_block.substring(link_end_search, link_start);
+
+
+                                ////////// check when link ends (start at position link_end_search)
+
+                                // ALLOWED CHARACTERS AFTER LINK DEFINED HERE (cc)
+                                var link_end_char = [" ", "\n"];
+                                // characters could be part of link, but not if followed by a link_end_char (cc)
+                                var stop_char = [",", ".", "!", "?", ")"];
+
+                                // count up link_end_search until end of link
+                                for (var link_end_search = link_start ; link_end_search < current_text_block.length && !(link_end_char.includes(current_text_block[link_end_search])); link_end_search++) { };
+                                // check if (multiple) stop_char to be removed
+                                while (stop_char.includes(current_text_block[link_end_search-1])) { link_end_search -= 1 };
+
+                                ////////// create link
+                                new_text += "<a href= \"";
+                                if (current_text_block[link_start] == "w") { new_text += "https://"; }; // normalise links
+
+                                new_text += current_text_block.substring(link_start, link_end_search)
+                                    + "\" target=\"_blank\">"
+                                    + current_text_block.substring(link_start, link_end_search)
+                                    + "</a>";
+
+                                // add link to output
+                                link_out_txt += new_text;
+
+                                // continue link search after last found link
+                                link_search_position = link_end_search-1;
+                            }; // end auto link check
+                        }; // end text search
+
+                        // add text after last link to output
+                        link_out_txt += current_text_block.substring(link_end_search);
+
+                    }; // end auto links of normal text block in text split
+                }; // end link split
+
+
+            } // end if correct split check
+
+            else { link_out_txt = "ERROR:<br>\nUneven amount of \"\\l\"-commands found!" };
+
+            out_txt = link_out_txt;
+
+            /////////////////////////////////////// end links
+
+            out_txt = out_txt.replace(/\n/g, "\n<br>"); // convert string line breaks back to html
+
+            // print output on page
+            out_textarea.value = out_txt;
+            out_par.innerHTML = out_txt;
+        };
+        // end generate button function
+
+        
+        // run the script fail test
+        document.getElementById("script_fail").style.display = 'none';
+    </script>
+
+</body>
+</html>
